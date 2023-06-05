@@ -149,7 +149,7 @@ const getService = async function (req, res) {
   }
 };
 
-const getSellerData = async function (req, res) {
+const  getSellerData = async function (req, res) {
   try {
     let serviceName = req.query.serviceName;
     if (!isvalid(serviceName)) {

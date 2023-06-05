@@ -132,7 +132,7 @@ const registerUser = async function (req, res) {
       data: `register successfully `,
     });
   } catch (err) {
-    return res.status(500).send({ msg: "Error" });
+    return res.status(500).send({ msg: err.message });
   }
 };
 

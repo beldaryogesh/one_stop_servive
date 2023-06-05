@@ -5,15 +5,16 @@ const subscriptionSchema = new mongoose.Schema({
   subscriptionName : {
     type : String,
     require : true,
+    enum : ["quauterly plan", "half yearly plan", "annual plan"],
     trim : true
   },
-  sellerId :{
+  userId :{
         type : ObjectId,
         ref : 'User',
         trim : true
    },
    description : {
-    type : string ,
+    type : String ,
     require : true,
     trim : true
    },
@@ -22,20 +23,13 @@ const subscriptionSchema = new mongoose.Schema({
     require : true,
     trim : true
    },
-   startDate: {
-    type: Date,
-    required: true
-  },
-  endDate: {
-    type: Date,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['active', 'cancelled', 'expired'],
-    default: 'active'
-  }   
-})
+   isDeleted : {
+    type : Boolean,
+    default : false
+}
+},{timestamps:true})
 
 module.exports = mongoose.model('Subscription', subscriptionSchema )
+// quauterly plan , half_yearly , annual 
+
 

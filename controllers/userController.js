@@ -46,7 +46,7 @@ const getData = async function (req, res) {
 
 const updateUser = async function (req, res) {
   try {
-    let userId = req.params.id;
+    let userId = req.params.userId;
     let data = req.body;
     if (!isValidRequestBody(data)) {
       return res

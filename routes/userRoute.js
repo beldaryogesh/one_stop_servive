@@ -8,7 +8,7 @@ const userController = require("../controllers/userController")
 
 
 Router.get('/getData', userController.getData)
-Router.put('/update/:id', userController.updateUser )
+Router.put('/update/:userId', userController.updateUser )
 Router.delete('/deleteUser/:userId', userController.deleteUser)
 
 

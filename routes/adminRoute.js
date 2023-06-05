@@ -7,6 +7,3 @@ router.post('/createAdmin', adminController.createAdmin )
 router.post('/adminlogin', adminController.adminLogin)
 
 module.exports = router
-
-
-
