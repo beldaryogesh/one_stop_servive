@@ -2,7 +2,7 @@ const userModel = require("../models/userModel");
 const otpGenerator = require("otp-generator");
 const pinValidator = require("pincode-validator");
 const Otp = require("../models/otpModel");
-const jwt = require('jsonwebtoken')
+const jwt = require("jsonwebtoken");
 
 const {
   isvalid,
@@ -15,14 +15,13 @@ const {
 const registerUser = async function (req, res) {
   try {
     let data = req.body;
+
     if (!isValidRequestBody(data)) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            "please provide  name, number, email, password, address, userType for registation",
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          "please provide  name, number, email, password, address, userType for registation",
+      });
     }
     let { name, number, email, password, address, userType, userStatus } = data;
     let obj = {};
@@ -57,12 +56,10 @@ const registerUser = async function (req, res) {
     obj["number"] = number;
     let getEmail = await userModel.findOne({ email: email });
     if (getEmail) {
-      return res
-        .status(400)
-        .send({
-          sttaus: false,
-          message: "email is already in use , please enter a new one",
-        });
+      return res.status(400).send({
+        sttaus: false,
+        message: "email is already in use , please enter a new one",
+      });
     }
     if (!isvalid(email)) {
       return res
@@ -140,22 +137,18 @@ const loginUser = async function (req, res) {
   try {
     const { number } = req.body;
     if (!isValidRequestBody(req.body)) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "please provide number for user login",
-        });
+      return res.status(400).send({
+        status: false,
+        message: "please provide number for user login",
+      });
     }
 
     let user = await userModel.findOne({ number: number });
     if (!user) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: `no user registerd whit ${number} number please register then you will be eligible to login`,
-        });
+      return res.status(400).send({
+        status: false,
+        message: `no user registerd whit ${number} number please register then you will be eligible to login`,
+      });
     }
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
@@ -167,14 +160,17 @@ const loginUser = async function (req, res) {
       {
         userId: user._id.toString(),
         organisation: "Appzia-Technology",
-
       },
       "one-stop-service"
     );
-    { res.setHeader("x-api-key", token) };
-    { return res.status(201).send({ status: true,message:  `your otp is ${otp}`, token: token }) };
-
-
+    {
+      res.setHeader("x-api-key", token);
+    }
+    {
+      return res
+        .status(201)
+        .send({ status: true, message: `your otp is ${otp}`, token: token });
+    }
   } catch (error) {
     return res.status(500).send({ msg: "Error", error: error.message });
   }

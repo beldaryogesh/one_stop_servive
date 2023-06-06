@@ -1,5 +1,5 @@
 const Admin = require("../models/adminModel");
-const userModel = require("../models/userModel")
+const userModel = require("../models/userModel");
 const pinValidator = require("pincode-validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -12,8 +12,6 @@ const {
   passRegex,
   phoneRegex,
 } = require("../validations/validation");
-
-
 
 const createAdmin = async function (req, res) {
   let data = req.body;
@@ -91,8 +89,10 @@ const createAdmin = async function (req, res) {
         .send({ status: false, message: "Please enter a valid pincode." });
   }
   obj["address"] = address;
-  if(!isvalid(userType)){
-    return res.status(400).send({status : false, message : "please provide userType"})
+  if (!isvalid(userType)) {
+    return res
+      .status(400)
+      .send({ status: false, message: "please provide userType" });
   }
   obj["userType"] = userType;
 
@@ -104,44 +104,59 @@ const createAdmin = async function (req, res) {
   });
 };
 
-
 const adminLogin = async function (req, res) {
   try {
-    const data = req.body
-    const { email, password } = data
-    if (!isValidRequestBody(data))    
-      return res.status(400).send({ status: false, message: "please Provide the login credentials in body." })
-    if (!isvalid(email)) 
-      return res.status(400).send({ status: false, message: "Please enter the email." })
-    if (!emailRegex.test(email))   
-      return res.status(400).send({ status: false, message: "Please enter a valid emailId." })
-    if (!isvalid(password)) {  
-      return res.status(400).send({ status: false, message: "Please enter Password should be Valid min 8 and max 15 length" });
+    const data = req.body;
+    const { email, password } = data;
+    if (!isValidRequestBody(data))
+      return res.status(400).send({
+        status: false,
+        message: "please Provide the login credentials in body.",
+      });
+    if (!isvalid(email))
+      return res
+        .status(400)
+        .send({ status: false, message: "Please enter the email." });
+    if (!emailRegex.test(email))
+      return res
+        .status(400)
+        .send({ status: false, message: "Please enter a valid emailId." });
+    if (!isvalid(password)) {
+      return res.status(400).send({
+        status: false,
+        message:
+          "Please enter Password should be Valid min 8 and max 15 length",
+      });
     }
-    if (!passRegex.test(password))   
-      return res.status(400).send({ status: false, message: "Password length should be alphanumeric with 8-15 characters, should contain at least one lowercase, one uppercase and one special character." })
+    if (!passRegex.test(password))
+      return res.status(400).send({
+        status: false,
+        message:
+          "Password length should be alphanumeric with 8-15 characters, should contain at least one lowercase, one uppercase and one special character.",
+      });
     const admin = await userModel.findOne({ email: email });
     if (!admin) {
-      return res.status(404).send({ status: false, msg: "Invalid admin" })
+      return res.status(404).send({ status: false, msg: "Invalid admin" });
     }
-    if(!(admin.userType === 'admin')){
-      return res.status(403).send({status : false, message : "only admin access this Api for login"})
+    if (!(admin.userType === "admin")) {
+      return res.status(403).send({
+        status: false,
+        message: "only admin access this Api for login",
+      });
     }
-    const decrypPassword = admin.password
-    const pass = await bcrypt.compare(password, decrypPassword)
+    const decrypPassword = admin.password;
+    const pass = await bcrypt.compare(password, decrypPassword);
     if (!pass) {
-      return res.status(400).send({ status: false, message: "Password Incorrect" })
+      return res
+        .status(400)
+        .send({ status: false, message: "Password Incorrect" });
     }
-    return res.status(200).send({ status: true, msg: "Admin LoggedIn Succesfully"})
+    return res
+      .status(200)
+      .send({ status: true, msg: "Admin LoggedIn Succesfully" });
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
   }
-  catch (err) {
-    return res.status(500).send({ status: false, msg: err.message })
-  }
-}
-
-
+};
 
 module.exports = { createAdmin, adminLogin };
-
-
-

@@ -62,6 +62,13 @@ const userSchema = new mongoose.Schema({
         isDeleted : {
             type : Boolean,
             default : false
+        },
+        expiryDate : {
+            type : Date
+        },
+        subscriptionId : {
+            type :mongoose.Schema.Types.ObjectId,
+            ref : "Subscription"
         }
 
         

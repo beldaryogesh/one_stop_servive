@@ -51,9 +51,9 @@ const addService = async function (req, res) {
         message: "please provide valid indian format number",
       });
     }
-    let serviceData = await serviceModel.find({ userId: userId });
-    if (serviceData.isDeleted == false) {
-      serviceData.forEach((el) => {
+    let service = await serviceModel.find({ userId: userId });
+    if (service.isDeleted == false) {
+      service.forEach((el) => {
         if (el.userId == userId && el.serviceName == serviceName) {
           return res.status(400).send({
             status: false,
@@ -63,38 +63,36 @@ const addService = async function (req, res) {
         }
       });
     }
-    let sellerData = await userModel.findById(userId);
-    if (sellerData.isDeleted == true) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "This seller is deleted, you can't add service",
-        });
+    let seller = await userModel.findById(userId);
+    if (seller.isDeleted == true) {
+      return res.status(400).send({
+        status: false,
+        message: "This seller is deleted, you can't add service",
+      });
     }
-    if (!(sellerData.userType == "seller")) {
+    if (!(seller.userType == "seller")) {
       return res
         .status(400)
         .send({ status: false, message: "only seller can access this api" });
     }
-    if (!(sellerData.userStatus == "verified")) {
+    if (!(seller.userStatus == "verified")) {
       return res.status(400).send({
         status: false,
         message:
           "you need to verify user status than you are eligible to add service",
       });
     }
-    data["sellerName"] = sellerData.name;
+    data["sellerName"] = seller.name;
 
-    const addServices = await serviceModel.create(data);
-    addServices.save();
+    const add_service = await serviceModel.create(data);
+    add_service.save();
     const user = await userModel.findById(userId);
-    user.userServices.push(addServices._id);
+    user.userServices.push(add_service._id);
     user.save();
     return res.status(201).send({
       status: true,
       message: `${serviceName} service added successfully`,
-      data: addServices,
+      data: add_service,
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
@@ -103,8 +101,8 @@ const addService = async function (req, res) {
 
 const getAllService = async function (req, res) {
   try {
-    const allData = await serviceModel.find({});
-    return res.json({ data: allData });
+    const data = await serviceModel.find({});
+    return res.status(200).send({ data: data });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -132,8 +130,8 @@ const getService = async function (req, res) {
         message: "service name should contain alphabets only.",
       });
     }
-    const serviceData = await serviceModel.find({ serviceName: serviceName });
-    if (serviceData.length === 0) {
+    const service = await serviceModel.find({ serviceName: serviceName });
+    if (service.length === 0) {
       return res.status(404).send({
         status: false,
         message: `No such similar service are find by the ${serviceName}`,
@@ -142,14 +140,14 @@ const getService = async function (req, res) {
     return res.status(200).send({
       status: true,
       message: `this following services are available for ${serviceName} `,
-      data: serviceData,
+      data: service,
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
 };
 
-const  getSellerData = async function (req, res) {
+const getSellerData = async function (req, res) {
   try {
     let serviceName = req.query.serviceName;
     if (!isvalid(serviceName)) {
@@ -164,9 +162,9 @@ const  getSellerData = async function (req, res) {
         message: "service name should contain alphabets only. ",
       });
     }
-    let sellerDetails = await serviceModel.find({ serviceName: serviceName });
+    let seller = await serviceModel.find({ serviceName: serviceName });
 
-    if (sellerDetails.length == 0) {
+    if (seller.length == 0) {
       return res.status(404).send({
         status: false,
         message: `${serviceName} service is not provided by any seller`,
@@ -174,7 +172,7 @@ const  getSellerData = async function (req, res) {
     }
     return res
       .status(200)
-      .send({ status: true, message: "seller list", data: sellerDetails });
+      .send({ status: true, message: "seller list", data: seller });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -188,12 +186,10 @@ const updateService = async function (req, res) {
     const service = await serviceModel.findById(serviceId);
     const user = await userModel.findById(service.userId);
     if (user.isDeleted == true) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "This seller is deleted, you can't update service",
-        });
+      return res.status(400).send({
+        status: false,
+        message: "This seller is deleted, you can't update service",
+      });
     }
     if (user.userType !== "seller") {
       return res
@@ -268,7 +264,9 @@ const updateService = async function (req, res) {
       { $set: obj },
       { new: true }
     );
-
+    return res
+      .status(201)
+      .send({ status: true, message: "successfully update", data: update });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }

@@ -29,7 +29,7 @@ const verifyToken = function (req, res, next) {
         return res.status(401).send({ message: "Unauthorized" });
       } else {
         req["userId"] = decoded.userId;
-        next()
+        next();
       }
     });
   } catch (error) {
@@ -37,25 +37,38 @@ const verifyToken = function (req, res, next) {
   }
 };
 
-
-const authorize = async function (req, res, next){
+const authorize = async function (req, res, next) {
   try {
     let userId = req.userId;
     let user = await userModel.findById(userId);
-    if(!user){
-      return res
-      .status(404)
-      .send({message : "userId not present"})
+    if (!user) {
+      return res.status(404).send({ message: "userId not present" });
     }
-    if(userId != user._id){
-      return res
-      .status(403)
-      .send({message : "provide your own token"})
+    if (userId != user._id) {
+      return res.status(403).send({ message: "provide your own token" });
     }
-    next()
+    next();
   } catch (error) {
-    return res.status(500).send({message : error.message})
+    return res.status(500).send({ message: error.message });
   }
-}
+};
 
-module.exports = { isAdmin, verifyToken, authorize };
+const expiryCheck = async function (req, res, next) {
+  try {
+    let userId = req.userId;
+    const user = await userModel.findById(userId);
+    if (user.userType == "seller") {
+      const expirationDate = user.expiryDate;
+      if (Date.now() > expirationDate) {
+        return res.status(400).send({
+          message: "Subscription Expired",
+        });
+      }
+    }
+    next();
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+};
+
+module.exports = { isAdmin, verifyToken, authorize, expiryCheck };
