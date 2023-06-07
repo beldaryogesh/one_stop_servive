@@ -1,6 +1,7 @@
 const userModel = require("../models/userModel");
 const pinValidator = require("pincode-validator");
 const serviceModel = require("../models/serviceModel");
+const bcrypt = require("bcrypt");
 
 const {
   isvalid,
@@ -28,8 +29,8 @@ const getData = async function (req, res) {
         .status(200)
         .send({ status: true, message: "user list", data: user });
     } else if (serviceName !== undefined) {
-      let sellerDetails = await serviceModel.find({ serviceName: serviceName });
-      if (sellerDetails.length == 0) {
+      let seller = await serviceModel.find({ serviceName: serviceName });
+      if (seller.length == 0) {
         return res.status(404).send({
           status: false,
           message: `No such user found in the database for this ${serviceName}`,
@@ -38,7 +39,7 @@ const getData = async function (req, res) {
       return res.status(200).send({
         status: false,
         message: "seller list",
-        data: sellerDetails,
+        data: seller,
       });
     }
   } catch (err) {
@@ -57,9 +58,9 @@ const updateUser = async function (req, res) {
     }
     const { name, number, email, password, address, userType, userStatus } =
       data;
-    let bodyFromReq = JSON.parse(JSON.stringify(data));
+
     let obj = {};
-    if (bodyFromReq.hasOwnProperty("name")) {
+    if (name != undefined) {
       if (!isvalid(name)) {
         return res
           .status(400)
@@ -78,7 +79,7 @@ const updateUser = async function (req, res) {
     }
     obj["name"] = name;
 
-    if (bodyFromReq.hasOwnProperty("number")) {
+    if (number != undefined) {
       if (!isvalid(number)) {
         return res
           .status(400)
@@ -103,7 +104,7 @@ const updateUser = async function (req, res) {
       }
     }
     obj["number"] = number;
-    if (bodyFromReq.hasOwnProperty("email")) {
+    if (email != undefined) {
       if (!isvalid(email)) {
         return res
           .status(400)
@@ -129,7 +130,7 @@ const updateUser = async function (req, res) {
     }
     obj["email"] = email;
 
-    if (bodyFromReq.hasOwnProperty("password")) {
+    if (password != undefined) {
       if (!isvalid(password)) {
         return res
           .status(400)
@@ -145,8 +146,10 @@ const updateUser = async function (req, res) {
         return res
           .status(400)
           .send({ status: false, msg: `${password} is already present` });
+      const saltRounds = 8;
+      const encryptedPassword = await bcrypt.hash(password, saltRounds);
+      obj["password"] = encryptedPassword;
     }
-    obj["password"] = password;
     if (address) {
       if (
         !isvalid(address.street) ||
@@ -165,10 +168,7 @@ const updateUser = async function (req, res) {
     }
     obj["address"] = address;
     if (userStatus) {
-      let user_new = await userModel.find({ userId });
-      if (user_new.userType === "admin") {
-        obj["userStatus"] = userStatus;
-      }
+      obj["userStatus"] = userStatus;
     }
     let update = await userModel.findByIdAndUpdate(
       { _id: userId },
@@ -176,9 +176,8 @@ const updateUser = async function (req, res) {
       { new: true }
     );
     res.status(201).send({ status: true, message: "success", data: update });
-    user.save();
   } catch (error) {
-    return res.status(500).send({ status: false, message: "Error" });
+    return res.status(500).send({ status: false, message: error.message });
   }
 };
 

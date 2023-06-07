@@ -3,6 +3,7 @@ const otpGenerator = require("otp-generator");
 const pinValidator = require("pincode-validator");
 const Otp = require("../models/otpModel");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const {
   isvalid,
@@ -77,8 +78,19 @@ const registerUser = async function (req, res) {
         .status(400)
         .send({ status: false, message: "please provide password" });
     }
+    if (!passRegex.test(password)) {
+      return res
+        .status(400)
+        .send({
+          status: false,
+          message:
+            "Password length should be alphanumeric with 8-15 characters, should contain at least one lowercase, one uppercase and one special character.",
+        });
+    }
+    const saltRounds = 8;
+    const encryptedPassword = await bcrypt.hash(password, saltRounds);
+    obj["password"] = encryptedPassword;
 
-    obj["password"] = password;
     if (address) {
       if (
         !isvalid(address.street) ||

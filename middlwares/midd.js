@@ -4,16 +4,20 @@ const { isValid } = require("../validations/validation");
 const userModel = require("../models/userModel");
 const serviceModel = require("../models/serviceModel");
 
-const isAdmin = function (req, res, next) {
+const isAdmin = async function (req, res, next) {
   try {
-    const userType = req.body.userType;
-    if (userType === "admin") {
-      next();
-    } else {
-      return res
-        .status(400)
-        .send({ status: false, message: "only admin can access this api" });
+    let userType = req.body.userType;
+
+    if (req.body.userStatus) {
+      if (userType == "admin") {
+        return next();
+      } else {
+        return res
+          .status(400)
+          .send({ status: false, message: "only admin can access this api" });
+      }
     }
+    next();
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -42,7 +46,7 @@ const authorize = async function (req, res, next) {
     let userId = req.userId;
     let user = await userModel.findById(userId);
     if (!user) {
-      return res.status(404).send({ message: "userId not present" });
+      return res.status(404).send({ message: "you are not registerd" });
     }
     if (userId != user._id) {
       return res.status(403).send({ message: "provide your own token" });
@@ -50,6 +54,22 @@ const authorize = async function (req, res, next) {
     next();
   } catch (error) {
     return res.status(500).send({ message: error.message });
+  }
+};
+
+const numberVerification = async function (req, res, next) {
+  try {
+    let number = req.params.number;
+    let userId = req.userId;
+    let user = await userModel.findById(userId);
+    if (user.number != number) {
+      return res
+        .status(403)
+        .send({ status: false, message: "provide your own token" });
+    }
+    next();
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
   }
 };
 
@@ -71,4 +91,10 @@ const expiryCheck = async function (req, res, next) {
   }
 };
 
-module.exports = { isAdmin, verifyToken, authorize, expiryCheck };
+module.exports = {
+  isAdmin,
+  verifyToken,
+  authorize,
+  numberVerification,
+  expiryCheck,
+};

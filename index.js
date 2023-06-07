@@ -1,7 +1,6 @@
 const express = require("express");
 const { default: mongoose } = require("mongoose");
 const authRoute = require("./routes/authRoute.js");
-const adminRoute = require("./routes/adminRoute.js");
 const userRoute = require("./routes/userRoute.js");
 const serviceRoute = require("./routes/serviceRoute.js");
 const subscriptionRoute = require("./routes/subscriptionRoute.js");
@@ -26,7 +25,6 @@ const connectDb = async () => {
 };
 
 app.use("/", authRoute);
-app.use("/", adminRoute);
 app.use("/", userRoute);
 app.use("/", authRoute);
 app.use("/", serviceRoute);

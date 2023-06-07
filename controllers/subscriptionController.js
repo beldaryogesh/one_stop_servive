@@ -7,64 +7,6 @@ const {
   nameRegex,
 } = require("../validations/validation");
 
-const createSubscription = async function (req, res) {
-  try {
-    let data = req.body;
-    let userId = req.userId;
-
-    if (!isValidRequestBody(data)) {
-      return res.status(400).send({
-        status: false,
-        message: "please provide data for create subscription plan",
-      });
-    }
-
-    let user = await userModel.findById(userId);
-    if (user.userType != "admin") {
-      return res
-        .status(400)
-        .send({ status: false, message: "only admin can access this api" });
-    }
-    let { subscriptionName, description, subscriptionPrice } = data;
-
-    if (!isvalid(subscriptionName)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "please provide subscription name" });
-    }
-    if (!nameRegex.test(subscriptionName)) {
-      return res.status(400).send({
-        status: false,
-        message: "please provide valid subscription name",
-      });
-    }
-    if (!isvalid(description)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "please provide description" });
-    }
-    if (!isvalid(subscriptionPrice)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "please provide subscription price" });
-    }
-    if (!Number(subscriptionPrice)) {
-      return res.status(400).send({
-        status: false,
-        message: "please provide valid(numaric) price",
-      });
-    }
-    const subscription = await subscriptionModel.create(data);
-    return res.status(201).send({
-      status: false,
-      message: "successfully created",
-      data: subscription,
-    });
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
-  }
-};
-
 const getSubscription = async function (req, res) {
   try {
     const subscription = await subscriptionModel.find({});
@@ -232,7 +174,6 @@ const buyNow = async function (req, res) {
 };
 
 module.exports = {
-  createSubscription,
   getSubscription,
   updateSubscription,
   deleteSubscription,
