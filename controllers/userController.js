@@ -15,10 +15,10 @@ const subscriptionModel = require("../models/subscriptionModel");
 
 const getData = async function (req, res) {
   try {
-    let filters = req.query.userType;
+    let userType = req.query.userType;
     let serviceName = req.query.serviceName;
-    if (filters !== undefined) {
-      let user = await userModel.find({ userType: filters });
+    if (userType !== undefined) {
+      let user = await userModel.find({ userType: userType });
       if (user.length == 0) {
         return res.status(404).send({
           status: false,
@@ -29,6 +29,9 @@ const getData = async function (req, res) {
         .status(200)
         .send({ status: true, message: "user list", data: user });
     } else if (serviceName !== undefined) {
+      if(!isvalid(serviceName)){
+        return res.status(400).send({status : true, message : "please provide service name"})
+      }
       let seller = await serviceModel.find({ serviceName: serviceName });
       if (seller.length == 0) {
         return res.status(404).send({
@@ -41,6 +44,9 @@ const getData = async function (req, res) {
         message: "seller list",
         data: seller,
       });
+    }else{
+      let get_user = await userModel.find({})
+      return res.status(200).send({status : true, message : "all user list", data : get_user})
     }
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });

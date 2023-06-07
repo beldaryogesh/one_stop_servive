@@ -28,10 +28,6 @@ const serviceSchema = new mongoose.Schema({
     require: true,
     trim: true,
   },
-  serviceImage: {
-    type: String,
-    trim: true,
-  },
   number: {
     type: Number,
     require: true,

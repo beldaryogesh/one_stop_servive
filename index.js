@@ -30,13 +30,16 @@ app.use("/", authRoute);
 app.use("/", serviceRoute);
 app.use("/", subscriptionRoute);
 
+
 const PORT = 3000;
 const start = async () => {
   try {
     await connectDb();
-    app.listen(PORT, () => {
-      console.log(`express app running on port ${PORT}`);
-    });
+    app.listen(PORT,'192.168.0.233');
+    // app.listen(PORT, () => {
+    //   console.log(`express app running on port ${PORT}`);
+    // });
+    
   } catch (error) {
     console.log(error);
   }

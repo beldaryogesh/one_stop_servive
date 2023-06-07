@@ -10,7 +10,7 @@ const userModel = require("../models/userModel");
 const addService = async function (req, res) {
   try {
     let userId = req.params.userId;
-
+  
     let data = req.body;
     if (!isValidRequestBody(data)) {
       return res.status(400).send({
@@ -52,7 +52,6 @@ const addService = async function (req, res) {
       });
     }
     let service = await serviceModel.find({ userId: userId });
-    if (service.isDeleted == false) {
       service.forEach((el) => {
         if (el.userId == userId && el.serviceName == serviceName) {
           return res.status(400).send({
@@ -62,7 +61,6 @@ const addService = async function (req, res) {
           });
         }
       });
-    }
     let seller = await userModel.findById(userId);
     if (seller.isDeleted == true) {
       return res.status(400).send({
@@ -85,10 +83,8 @@ const addService = async function (req, res) {
     data["sellerName"] = seller.name;
 
     const add_service = await serviceModel.create(data);
-    add_service.save();
     const user = await userModel.findById(userId);
     user.userServices.push(add_service._id);
-    user.save();
     return res.status(201).send({
       status: true,
       message: `${serviceName} service added successfully`,
