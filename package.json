@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "echo \"Error: no test specified\" && exit 1"
+    "start": "npx nodemon index.js"
   },
   "author": "yogesh beldar",
   "license": "ISC",
