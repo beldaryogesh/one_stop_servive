@@ -17,6 +17,9 @@ let emailRegex =
   /^[a-z]{1}[a-z0-9._]{1,100}[@]{1}[a-z]{2,15}[.]{1}[a-z]{2,10}$/;
 let passRegex =
   /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,15}$/;
+let service_name_Regex =
+  /^(Appliance Repairs|House Painters|Cleaning|Pest Control services|Home Repairs|Any Other Service)$/;
+
 
 module.exports = {
   isvalid,
@@ -24,5 +27,6 @@ module.exports = {
   phoneRegex,
   emailRegex,
   passRegex,
+  service_name_Regex,
   isValidRequestBody,
 };

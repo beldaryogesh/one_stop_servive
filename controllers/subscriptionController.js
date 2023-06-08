@@ -7,8 +7,93 @@ const {
   nameRegex,
 } = require("../validations/validation");
 
+const createSubscription = async function (req, res) {
+  try {
+    let data = req.body;
+    if (!isValidRequestBody(data)) {
+      return res.status(400).send({
+        status: false,
+        message: "please provide data for create subscription",
+      });
+    }
+    const {
+      subscriptionName,
+      description,
+      subscriptionPrice,
+      subscriptionMonth,
+    } = data;
+    if (!isvalid(subscriptionName)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "please provide subscription name" });
+    }
+    if (!nameRegex.test(subscriptionName)) {
+      return res.status(400).send({
+        status: false,
+        message: "please provide valid subscription name",
+      });
+    }
+    let subscription = await subscriptionModel.findOne({
+      subscriptionName: subscriptionName,
+    });
+
+    if (!isvalid(description)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "please provide description" });
+    }
+    if (!isvalid(subscriptionPrice)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "please provide subscription price" });
+    }
+    if (!Number(subscriptionPrice)) {
+      return res.status(400).send({
+        status: false,
+        message: "subscription price contain only numarical value",
+      });
+    }
+    if (!isvalid(subscriptionMonth)) {
+      return res
+        .status(400)
+        .send({
+          status: false,
+          message: "please provide ubscription duration",
+        });
+    }
+    if (!Number(subscriptionMonth)) {
+      return res
+        .status(400)
+        .send({
+          status: false,
+          message:
+            "please provide subscription duration in valid format(numarical value)",
+        });
+    }
+    let create_subscription = await subscriptionModel.create(data);
+    return res.status(201).send({
+      status: true,
+      message: "subscription create successfully",
+      data: create_subscription,
+    });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+};
+
 const getSubscription = async function (req, res) {
   try {
+    let userId = req.userId;
+    console.log(userId);
+    let user = await userModel.findById(userId);
+    if (user.userType == "customer") {
+      return res
+        .status(400)
+        .send({
+          status: false,
+          message: "only seller and admin can access this api",
+        });
+    }
     const subscription = await subscriptionModel.find({});
     if (subscription.length == 0) {
       return res.status(404).send({
@@ -27,6 +112,14 @@ const updateSubscription = async function (req, res) {
     let data = req.body;
     let userId = req.userId;
     let subscriptionId = req.params.subscriptionId;
+    if (!isValidRequestBody(data)) {
+      return res
+        .status(400)
+        .send({
+          status: false,
+          message: "please provide data for update subscription",
+        });
+    }
     let user = await userModel.findById(userId);
     if (user.userType != "admin") {
       return res
@@ -39,7 +132,12 @@ const updateSubscription = async function (req, res) {
         message: "please provide data for upadte subscription",
       });
     }
-    let { subscriptionName, description, subscriptionPrice } = data;
+    let {
+      subscriptionName,
+      description,
+      subscriptionPrice,
+      subscriptionMonth,
+    } = data;
     let obj = {};
     let subscription = await subscriptionModel.findById(subscriptionId);
     if (subscriptionName != undefined) {
@@ -94,6 +192,26 @@ const updateSubscription = async function (req, res) {
       }
       obj["subscriptionName"] = subscriptionName;
     }
+    if (subscriptionMonth != undefined) {
+      if (!isvalid(subscriptionMonth)) {
+        return res
+          .status(400)
+          .send({
+            status: false,
+            message: "please provide subscription month",
+          });
+      }
+      if (!Number(subscriptionMonth)) {
+        return res
+          .status(400)
+          .send({
+            status: false,
+            message:
+              "please provide subscription duration in valid format(numarical value)",
+          });
+      }
+      obj["subscriptionMonth"] = subscriptionMonth;
+    }
     let update_Subscription = await subscriptionModel.findByIdAndUpdate(
       { _id: subscriptionId },
       { $set: obj },
@@ -111,13 +229,6 @@ const updateSubscription = async function (req, res) {
 const deleteSubscription = async function (req, res) {
   try {
     let subscriptionId = req.params.subscriptionId;
-    let userId = req.userId;
-    const user = await userModel.findById(userId);
-    if (user.userType != "admin") {
-      return res
-        .status(400)
-        .send({ status: false, message: "only admin can access this api" });
-    }
     const subscription = await subscriptionModel.findById(subscriptionId);
     if (subscription.isDeleted == true) {
       return res.status(400).send({
@@ -174,6 +285,7 @@ const buyNow = async function (req, res) {
 };
 
 module.exports = {
+  createSubscription,
   getSubscription,
   updateSubscription,
   deleteSubscription,

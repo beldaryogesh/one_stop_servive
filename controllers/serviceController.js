@@ -4,13 +4,14 @@ const {
   isValidRequestBody,
   nameRegex,
   phoneRegex,
+  service_name_Regex,
 } = require("../validations/validation");
 const userModel = require("../models/userModel");
 
 const addService = async function (req, res) {
   try {
-    let userId = req.params.userId;
-  
+    let userId = req.userId;
+
     let data = req.body;
     if (!isValidRequestBody(data)) {
       return res.status(400).send({
@@ -33,7 +34,14 @@ const addService = async function (req, res) {
         message: "service name should contain alphabets only.",
       });
     }
-
+    if (!service_name_Regex.test(serviceName)) {
+      return res.status(400).send({
+        status: false,
+        message:
+          "you will only provide the following service, Appliance Repairs, House Painters, Cleaning, Pest Control services, Home Repairs, Any Other Service ",
+      });
+    }
+    
     if (!isvalid(description)) {
       return res
         .status(400)
@@ -52,15 +60,15 @@ const addService = async function (req, res) {
       });
     }
     let service = await serviceModel.find({ userId: userId });
-      service.forEach((el) => {
-        if (el.userId == userId && el.serviceName == serviceName) {
-          return res.status(400).send({
-            status: false,
-            message:
-              "you are already providing this service please provide unique service",
-          });
-        }
-      });
+    service.forEach((el) => {
+      if (el.userId == userId && el.serviceName == serviceName) {
+        return res.status(400).send({
+          status: false,
+          message:
+            "you are already providing this service please provide unique service",
+        });
+      }
+    });
     let seller = await userModel.findById(userId);
     if (seller.isDeleted == true) {
       return res.status(400).send({
@@ -85,9 +93,10 @@ const addService = async function (req, res) {
     const add_service = await serviceModel.create(data);
     const user = await userModel.findById(userId);
     user.userServices.push(add_service._id);
+    await user.save()
     return res.status(201).send({
       status: true,
-      message: `${serviceName} service added successfully`,
+      message: "service added successfully",
       data: add_service,
     });
   } catch (error) {
@@ -95,26 +104,12 @@ const addService = async function (req, res) {
   }
 };
 
-const getAllService = async function (req, res) {
-  try {
-    const data = await serviceModel.find({});
-    return res.status(200).send({ data: data });
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
-  }
-};
 
 const getService = async function (req, res) {
   try {
     let data = req.query;
-
-    if (!isValidRequestBody(data)) {
-      return res.status(400).send({
-        status: false,
-        message: "please provide query for searching services",
-      });
-    }
     let { serviceName } = data;
+    if(serviceName != undefined){
     if (!isvalid(serviceName)) {
       return res
         .status(400)
@@ -138,6 +133,10 @@ const getService = async function (req, res) {
       message: `this following services are available for ${serviceName} `,
       data: service,
     });
+  }else{
+    let service = await serviceModel.find({})
+    return res.status(200).send({status : true, message: service})
+  }
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -181,43 +180,21 @@ const updateService = async function (req, res) {
 
     const service = await serviceModel.findById(serviceId);
     const user = await userModel.findById(service.userId);
+    if (!isValidRequestBody(data)) {
+      return res.status(400).send({
+        status: false,
+        message: "please provide data for update service",
+      });
+    }
     if (user.isDeleted == true) {
       return res.status(400).send({
         status: false,
         message: "This seller is deleted, you can't update service",
       });
     }
-    if (user.userType !== "seller") {
-      return res
-        .status(400)
-        .send({ status: false, message: "only seller can access this api" });
-    }
-    if (service.isDeleted == true) {
-      return res.status(400).send({
-        status: false,
-        message: "this service has been deleted , you cannot update",
-      });
-    }
     let { serviceName, description, number } = data;
-    let bodyFromReq = JSON.parse(JSON.stringify(data));
-
     let obj = {};
-    if (service.serviceName == serviceName) {
-      return res
-        .status(400)
-        .send({ status: false, message: "please provide unique service name" });
-    }
-    if (service.description == description) {
-      return res
-        .status(400)
-        .send({ status: false, message: "please provide unique description" });
-    }
-    if (service.number == number) {
-      return res
-        .status(400)
-        .send({ status: false, message: "please provide unique Number" });
-    }
-    if (bodyFromReq.hasOwnProperty("serviceName")) {
+    if(serviceName != undefined) {
       if (!isvalid(serviceName)) {
         return res
           .status(400)
@@ -229,18 +206,35 @@ const updateService = async function (req, res) {
           message: "service Name should contain alphabets only. ",
         });
       }
+      if (!service_name_Regex.test(serviceName)) {
+        return res.status(400).send({
+          status: false,
+          message:
+            "you will only provide the following service, Appliance Repairs, House Painters, Cleaning, Pest Control services, Home Repairs, Any Other Service ",
+        });
+      }
+      if (service.serviceName == serviceName) {
+        return res
+          .status(400)
+          .send({ status: false, message: "please provide unique service name" });
+      }
+      obj["serviceName"] = serviceName;
     }
 
-    obj["serviceName"] = serviceName;
-    if (bodyFromReq.hasOwnProperty("description")) {
+if(description != undefined) {
       if (!isvalid(description)) {
         return res
           .status(400)
           .send({ status: false, message: "please provide description" });
       }
+      if (service.description == description) {
+        return res
+          .status(400)
+          .send({ status: false, message: "please provide unique description" });
+      }
+      obj["description"] = description;
     }
-    obj["description"] = description;
-    if (bodyFromReq.hasOwnProperty("number")) {
+if(number != undefined) {
       if (!isvalid(number)) {
         return res
           .status(400)
@@ -252,8 +246,13 @@ const updateService = async function (req, res) {
           message: "please provide valid indian format Number ",
         });
       }
+      if (service.number == number) {
+        return res
+          .status(400)
+          .send({ status: false, message: "please provide unique Number" });
+      }
+      obj["number"] = number;
     }
-    obj["number"] = number;
 
     let update = await serviceModel.findByIdAndUpdate(
       { _id: serviceId },
@@ -313,7 +312,6 @@ const deleteService = async function (req, res) {
 
 module.exports = {
   addService,
-  getAllService,
   getService,
   getSellerData,
   updateService,
