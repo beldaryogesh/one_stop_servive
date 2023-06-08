@@ -18,7 +18,7 @@ const connectDb = async () => {
   try {
     mongoose.connect(URL, { useNewUrlParser: true });
     console.log("mongoDB is connected");
-    await create_Subscription();
+  
   } catch (error) {
     console.log(error);
   }
@@ -46,40 +46,3 @@ const start = async () => {
 };
 
 start();
-
-async function create_Subscription(req, res) {
-  try {
-    let subscription = await subscriptionModel.find({});
-    if (subscription.length == 0) {
-      const quauterly_plan = {
-        subscriptionName: "quauterly plan",
-        description:
-          "this plan is for one year. you can show your service to the Customer for One year",
-        subscriptionPrice: 1500,
-        subscriptionMonth: 12,
-      };
-      const half_yearly_plan = {
-        subscriptionName: "half yearly plan",
-        description:
-          "this plan is for six month. you can show your service to the Customer for six month",
-        subscriptionPrice: 1000,
-        subscriptionMonth: 6,
-      };
-      let annual_plan = {
-        subscriptionName: "annual plan",
-        description:
-          "this plan is for three month. you can show your service to the Customer for three month",
-        subscriptionPrice: 700,
-        subscriptionMonth: 3,
-      };
-
-      await subscriptionModel.insertMany([
-        quauterly_plan,
-        half_yearly_plan,
-        annual_plan,
-      ]);
-    }
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
-  }
-}

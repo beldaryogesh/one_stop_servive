@@ -4,7 +4,6 @@ const subscriptionController = require("../controllers/subscriptionController");
 const commonMid = require("../middlwares/midd");
 
 
-// [commonMid.verifyToken, commonMid.authorize],
 
 Router.post(
   "/oss/api/v1/subscription/createSubscription",
